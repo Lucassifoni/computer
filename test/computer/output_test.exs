@@ -4,11 +4,10 @@ defmodule Computer.OutputTest do
 
   test "creates a new output" do
     fun = fn args -> args.value * 2 end
-    output = Output.new("test", "Test description", :number, true, fun)
+    output = Output.new("test", "Test description", :number, fun)
     assert output.name == "test"
     assert output.description == "Test description"
     assert output.type == :number
-    assert output.intermediate == true
     assert output.fun == fun
   end
 end

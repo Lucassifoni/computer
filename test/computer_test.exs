@@ -26,7 +26,7 @@ defmodule ComputerTest do
 
     test "adds output to computer" do
       fun = fn %{"input1" => val} -> val * 2 end
-      output = Output.new("output1", "Test output", :number, true, fun)
+      output = Output.new("output1", "Test output", :number, fun)
       input = Input.new("input1", "Test input", :number, 5)
 
       computer =
@@ -41,10 +41,10 @@ defmodule ComputerTest do
     test "computes dependent values" do
       input = Input.new("input1", "Test input", :number, 5)
       output_fun = fn %{"input1" => val} -> val * 2 end
-      output = Output.new("output1", "Test output", :number, true, output_fun)
+      output = Output.new("output1", "Test output", :number, output_fun)
 
       nested_output_fun = fn %{"output1" => val} -> val + 10 end
-      nested_output = Output.new("output2", "Nested output", :number, false, nested_output_fun)
+      nested_output = Output.new("output2", "Nested output", :number, nested_output_fun)
 
       computer =
         Computer.new("test")
@@ -68,19 +68,19 @@ defmodule ComputerTest do
         time / distance
       end
 
-      pace_output = Output.new("pace", "Pace (min/km)", :number, true, pace_fun)
+      pace_output = Output.new("pace", "Pace (min/km)", :number, pace_fun)
 
       speed_fun = fn %{"time" => time, "distance" => distance} ->
         distance / (time / 60)
       end
 
-      speed_output = Output.new("speed", "Speed (km/h)", :number, true, speed_fun)
+      speed_output = Output.new("speed", "Speed (km/h)", :number, speed_fun)
 
       calories_fun = fn %{"time" => time, "speed" => speed} ->
         time / 60 * (450 * speed / 12)
       end
 
-      calories_output = Output.new("calories", "Calories burned", :number, false, calories_fun)
+      calories_output = Output.new("calories", "Calories burned", :number, calories_fun)
 
       computer =
         Computer.new("pace_calculator")
@@ -121,26 +121,26 @@ defmodule ComputerTest do
         base_flour * (servings / 4)
       end
 
-      flour_output = Output.new("flour", "Flour amount (g)", :number, true, flour_fun)
+      flour_output = Output.new("flour", "Flour amount (g)", :number, flour_fun)
 
       water_fun = fn %{"flour" => flour} ->
         flour * 0.65
       end
 
-      water_output = Output.new("water", "Water amount (ml)", :number, false, water_fun)
+      water_output = Output.new("water", "Water amount (ml)", :number, water_fun)
 
       salt_fun = fn %{"flour" => flour} ->
         flour * 0.02
       end
 
-      salt_output = Output.new("salt", "Salt amount (g)", :number, false, salt_fun)
+      salt_output = Output.new("salt", "Salt amount (g)", :number, salt_fun)
 
       calories_fun = fn %{"flour" => flour, "servings" => servings} ->
         flour * 4 / servings
       end
 
       calories_output =
-        Output.new("calories", "Calories per serving", :number, false, calories_fun)
+        Output.new("calories", "Calories per serving", :number, calories_fun)
 
       computer =
         Computer.new("recipe_calculator")
@@ -179,7 +179,6 @@ defmodule ComputerTest do
           "days_until_replacement",
           "Days until replacement",
           :number,
-          true,
           days_until_replacement_fun
         )
 
@@ -192,7 +191,7 @@ defmodule ComputerTest do
       end
 
       monthly_cost_output =
-        Output.new("monthly_cost", "Monthly tire cost ($)", :number, false, monthly_cost_fun)
+        Output.new("monthly_cost", "Monthly tire cost ($)", :number, monthly_cost_fun)
 
       wear_percentage_fun = fn %{"daily_distance" => daily, "tire_lifespan" => lifespan} ->
         daily / lifespan * 100
@@ -203,7 +202,6 @@ defmodule ComputerTest do
           "wear_percentage",
           "Daily wear percentage",
           :number,
-          false,
           wear_percentage_fun
         )
 
@@ -246,27 +244,27 @@ defmodule ComputerTest do
       end
 
       daily_energy_output =
-        Output.new("daily_energy", "Daily energy (kWh)", :number, true, daily_energy_fun)
+        Output.new("daily_energy", "Daily energy (kWh)", :number, daily_energy_fun)
 
       annual_energy_fun = fn %{"daily_energy" => daily} ->
         daily * 365
       end
 
       annual_energy_output =
-        Output.new("annual_energy", "Annual energy (kWh)", :number, false, annual_energy_fun)
+        Output.new("annual_energy", "Annual energy (kWh)", :number, annual_energy_fun)
 
       annual_savings_fun = fn %{"annual_energy" => annual, "electricity_cost" => cost} ->
         annual * cost
       end
 
       annual_savings_output =
-        Output.new("annual_savings", "Annual savings ($)", :number, false, annual_savings_fun)
+        Output.new("annual_savings", "Annual savings ($)", :number, annual_savings_fun)
 
       roi_years_fun = fn %{"system_cost" => cost, "annual_savings" => savings} ->
         cost / savings
       end
 
-      roi_output = Output.new("roi_years", "ROI (years)", :number, false, roi_years_fun)
+      roi_output = Output.new("roi_years", "ROI (years)", :number, roi_years_fun)
 
       computer =
         Computer.new("solar_calculator")
@@ -306,21 +304,21 @@ defmodule ComputerTest do
       end
 
       monthly_payment_output =
-        Output.new("monthly_payment", "Monthly payment ($)", :number, true, monthly_payment_fun)
+        Output.new("monthly_payment", "Monthly payment ($)", :number, monthly_payment_fun)
 
       total_payments_fun = fn %{"monthly_payment" => payment, "loan_term" => years} ->
         payment * years * 12
       end
 
       total_payments_output =
-        Output.new("total_payments", "Total payments ($)", :number, false, total_payments_fun)
+        Output.new("total_payments", "Total payments ($)", :number, total_payments_fun)
 
       total_interest_fun = fn %{"total_payments" => total, "loan_amount" => amount} ->
         total - amount
       end
 
       total_interest_output =
-        Output.new("total_interest", "Total interest ($)", :number, false, total_interest_fun)
+        Output.new("total_interest", "Total interest ($)", :number, total_interest_fun)
 
       computer =
         Computer.new("mortgage_calculator")

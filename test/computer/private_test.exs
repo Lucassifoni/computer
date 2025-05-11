@@ -24,7 +24,7 @@ defmodule Computer.PrivateTest do
 
   test "registers an output" do
     fun = fn args -> args.value * 2 end
-    output = Output.new("test", "Test description", :number, true, fun)
+    output = Output.new("test", "Test description", :number, fun)
 
     private =
       Private.new()
