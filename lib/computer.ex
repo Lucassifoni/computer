@@ -1,0 +1,87 @@
+defmodule Computer do
+  alias Computer.Private
+  defstruct ~w(name inputs outputs private values)a
+
+  @doc """
+  Creates a new computer with the given name.
+  """
+  def new(name) do
+    %__MODULE__{
+      name: name,
+      inputs: [],
+      outputs: [],
+      private: Computer.Private.new(),
+      values: %{}
+    }
+  end
+
+  @doc """
+  Adds an input to the computer.
+  """
+  def add_input(computer, input) do
+    computer
+    |> Map.put(:inputs, [input | computer.inputs])
+    |> Map.put(:private, Private.register_input(computer.private, input))
+  end
+
+  @doc """
+  Adds an output to the computer with dependencies.
+  """
+  def add_output(computer, output, depends_on) do
+    dependency_list =
+      case depends_on do
+        a when is_list(a) -> a
+        b -> [b]
+      end
+
+    updated_private =
+      computer.private
+      |> Private.register_output(output)
+
+    updated_private =
+      Enum.reduce(dependency_list, updated_private, fn d, up ->
+        up |> Private.register_dependency(output.name, d)
+      end)
+      |> Private.refresh()
+
+    computer
+    |> Map.put(:outputs, [output | computer.outputs])
+    |> Map.put(:private, updated_private)
+    |> update_values()
+  end
+
+  @doc """
+  Updates the computer's values by fetching the current values from the private state.
+
+  Returns the updated computer struct with refreshed values.
+  """
+  def update_values(computer) do
+    %{
+      computer
+      | values: Private.get_values(computer.private)
+    }
+  end
+
+  @doc """
+  Handles an input update by setting the new value and computing any dependent outputs.
+
+  ## Parameters
+    * `computer` - The computer struct to update
+    * `input_name` - The name of the input being updated
+    * `value` - The new value for the input
+
+  Returns the updated computer with recalculated values.
+  """
+  def handle_input(computer, input_name, value) do
+    updated_private =
+      computer.private
+      |> Private.update_input(input_name, value)
+      |> Private.compute_dependents(input_name)
+
+    %{
+      computer
+      | private: updated_private
+    }
+    |> update_values()
+  end
+end
