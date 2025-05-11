@@ -1,5 +1,7 @@
 defmodule Computer do
   alias Computer.Private
+  alias Computer.Instance
+
   defstruct ~w(name inputs vals private values)a
 
   @doc """
@@ -22,6 +24,10 @@ defmodule Computer do
     computer
     |> Map.put(:inputs, [input | computer.inputs])
     |> Map.put(:private, Private.register_input(computer.private, input))
+  end
+
+  def make_instance(computer, options \\ []) do
+    GenServer.start_link(Instance, computer, options)
   end
 
   @doc """
@@ -50,12 +56,7 @@ defmodule Computer do
     |> update_values()
   end
 
-  @doc """
-  Updates the computer's values by fetching the current values from the private state.
-
-  Returns the updated computer struct with refreshed values.
-  """
-  def update_values(computer) do
+  defp update_values(computer) do
     %{
       computer
       | values: Private.get_values(computer.private)
