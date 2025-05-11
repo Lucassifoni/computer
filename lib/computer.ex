@@ -1,6 +1,6 @@
 defmodule Computer do
   alias Computer.Private
-  defstruct ~w(name inputs outputs private values)a
+  defstruct ~w(name inputs vals private values)a
 
   @doc """
   Creates a new computer with the given name.
@@ -9,7 +9,7 @@ defmodule Computer do
     %__MODULE__{
       name: name,
       inputs: [],
-      outputs: [],
+      vals: [],
       private: Computer.Private.new(),
       values: %{}
     }
@@ -25,9 +25,9 @@ defmodule Computer do
   end
 
   @doc """
-  Adds an output to the computer with dependencies.
+  Adds an val to the computer with dependencies.
   """
-  def add_output(computer, output, depends_on) do
+  def add_val(computer, val, depends_on) do
     dependency_list =
       case depends_on do
         a when is_list(a) -> a
@@ -36,16 +36,16 @@ defmodule Computer do
 
     updated_private =
       computer.private
-      |> Private.register_output(output)
+      |> Private.register_val(val)
 
     updated_private =
       Enum.reduce(dependency_list, updated_private, fn d, up ->
-        up |> Private.register_dependency(output.name, d)
+        up |> Private.register_dependency(val.name, d)
       end)
       |> Private.refresh()
 
     computer
-    |> Map.put(:outputs, [output | computer.outputs])
+    |> Map.put(:vals, [val | computer.vals])
     |> Map.put(:private, updated_private)
     |> update_values()
   end
@@ -63,7 +63,7 @@ defmodule Computer do
   end
 
   @doc """
-  Handles an input update by setting the new value and computing any dependent outputs.
+  Handles an input update by setting the new value and computing any dependent vals.
 
   ## Parameters
     * `computer` - The computer struct to update

@@ -2,12 +2,12 @@ defmodule Computer.PrivateTest do
   use ExUnit.Case
   alias Computer.Private
   alias Computer.Input
-  alias Computer.Output
+  alias Computer.Val
 
   test "creates a new private state" do
     private = Private.new()
     assert private.inputs == %{}
-    assert private.outputs == %{}
+    assert private.vals == %{}
     assert private.dependencies == []
   end
 
@@ -22,27 +22,27 @@ defmodule Computer.PrivateTest do
     assert private.names["test"] == :input
   end
 
-  test "registers an output" do
+  test "registers an val" do
     fun = fn args -> args.value * 2 end
-    output = Output.new("test", "Test description", :number, fun)
+    val = Val.new("test", "Test description", :number, fun)
 
     private =
       Private.new()
-      |> Private.register_output(output)
+      |> Private.register_val(val)
 
-    assert private.outputs["test"] == nil
+    assert private.vals["test"] == nil
     assert private.funs["test"] == fun
   end
 
   test "computes dependency maps" do
     private =
       Private.new()
-      |> Map.put(:dependencies, [{"output1", "input1"}, {"output2", "output1"}])
+      |> Map.put(:dependencies, [{"val1", "input1"}, {"val2", "val1"}])
       |> Private.compute_dependency_maps()
 
-    assert private.depended_bys["input1"] == ["output1"]
-    assert private.depended_bys["output1"] == ["output2"]
-    assert private.depended_ons["output1"] == ["input1"]
-    assert private.depended_ons["output2"] == ["output1"]
+    assert private.depended_bys["input1"] == ["val1"]
+    assert private.depended_bys["val1"] == ["val2"]
+    assert private.depended_ons["val1"] == ["input1"]
+    assert private.depended_ons["val2"] == ["val1"]
   end
 end

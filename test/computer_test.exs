@@ -2,14 +2,14 @@ defmodule ComputerTest do
   use ExUnit.Case
   alias Computer
   alias Computer.Input
-  alias Computer.Output
+  alias Computer.Val
 
   describe "Computer" do
     test "creates a new computer" do
       computer = Computer.new("test")
       assert computer.name == "test"
       assert computer.inputs == []
-      assert computer.outputs == []
+      assert computer.vals == []
     end
 
     test "adds input to computer" do
@@ -24,38 +24,38 @@ defmodule ComputerTest do
       assert computer.private.inputs["input1"] == 5
     end
 
-    test "adds output to computer" do
+    test "adds val to computer" do
       fun = fn %{"input1" => val} -> val * 2 end
-      output = Output.new("output1", "Test output", :number, fun)
+      val = Val.new("val1", "Test val", :number, fun)
       input = Input.new("input1", "Test input", :number, 5)
 
       computer =
         Computer.new("test")
         |> Computer.add_input(input)
-        |> Computer.add_output(output, "input1")
+        |> Computer.add_val(val, "input1")
 
-      assert length(computer.outputs) == 1
-      assert hd(computer.outputs).name == "output1"
+      assert length(computer.vals) == 1
+      assert hd(computer.vals).name == "val1"
     end
 
     test "computes dependent values" do
       input = Input.new("input1", "Test input", :number, 5)
-      output_fun = fn %{"input1" => val} -> val * 2 end
-      output = Output.new("output1", "Test output", :number, output_fun)
+      val_fun = fn %{"input1" => val} -> val * 2 end
+      val = Val.new("val1", "Test val", :number, val_fun)
 
-      nested_output_fun = fn %{"output1" => val} -> val + 10 end
-      nested_output = Output.new("output2", "Nested output", :number, nested_output_fun)
+      nested_val_fun = fn %{"val1" => val} -> val + 10 end
+      nested_val = Val.new("val2", "Nested val", :number, nested_val_fun)
 
       computer =
         Computer.new("test")
         |> Computer.add_input(input)
-        |> Computer.add_output(output, "input1")
-        |> Computer.add_output(nested_output, "output1")
+        |> Computer.add_val(val, "input1")
+        |> Computer.add_val(nested_val, "val1")
 
       updated_computer = Computer.handle_input(computer, "input1", 10)
 
-      assert updated_computer.values["output1"] == 20
-      assert updated_computer.values["output2"] == 30
+      assert updated_computer.values["val1"] == 20
+      assert updated_computer.values["val2"] == 30
     end
   end
 
@@ -68,27 +68,27 @@ defmodule ComputerTest do
         time / distance
       end
 
-      pace_output = Output.new("pace", "Pace (min/km)", :number, pace_fun)
+      pace_val = Val.new("pace", "Pace (min/km)", :number, pace_fun)
 
       speed_fun = fn %{"time" => time, "distance" => distance} ->
         distance / (time / 60)
       end
 
-      speed_output = Output.new("speed", "Speed (km/h)", :number, speed_fun)
+      speed_val = Val.new("speed", "Speed (km/h)", :number, speed_fun)
 
       calories_fun = fn %{"time" => time, "speed" => speed} ->
         time / 60 * (450 * speed / 12)
       end
 
-      calories_output = Output.new("calories", "Calories burned", :number, calories_fun)
+      calories_val = Val.new("calories", "Calories burned", :number, calories_fun)
 
       computer =
         Computer.new("pace_calculator")
         |> Computer.add_input(time_input)
         |> Computer.add_input(distance_input)
-        |> Computer.add_output(pace_output, ["time", "distance"])
-        |> Computer.add_output(speed_output, ["time", "distance"])
-        |> Computer.add_output(calories_output, ["time", "speed"])
+        |> Computer.add_val(pace_val, ["time", "distance"])
+        |> Computer.add_val(speed_val, ["time", "distance"])
+        |> Computer.add_val(calories_val, ["time", "speed"])
 
       assert computer.private.inputs["time"] == 30
       assert computer.private.inputs["distance"] == 5
@@ -121,35 +121,35 @@ defmodule ComputerTest do
         base_flour * (servings / 4)
       end
 
-      flour_output = Output.new("flour", "Flour amount (g)", :number, flour_fun)
+      flour_val = Val.new("flour", "Flour amount (g)", :number, flour_fun)
 
       water_fun = fn %{"flour" => flour} ->
         flour * 0.65
       end
 
-      water_output = Output.new("water", "Water amount (ml)", :number, water_fun)
+      water_val = Val.new("water", "Water amount (ml)", :number, water_fun)
 
       salt_fun = fn %{"flour" => flour} ->
         flour * 0.02
       end
 
-      salt_output = Output.new("salt", "Salt amount (g)", :number, salt_fun)
+      salt_val = Val.new("salt", "Salt amount (g)", :number, salt_fun)
 
       calories_fun = fn %{"flour" => flour, "servings" => servings} ->
         flour * 4 / servings
       end
 
-      calories_output =
-        Output.new("calories", "Calories per serving", :number, calories_fun)
+      calories_val =
+        Val.new("calories", "Calories per serving", :number, calories_fun)
 
       computer =
         Computer.new("recipe_calculator")
         |> Computer.add_input(servings_input)
         |> Computer.add_input(base_flour_input)
-        |> Computer.add_output(flour_output, ["servings", "base_flour"])
-        |> Computer.add_output(water_output, "flour")
-        |> Computer.add_output(salt_output, "flour")
-        |> Computer.add_output(calories_output, ["flour", "servings"])
+        |> Computer.add_val(flour_val, ["servings", "base_flour"])
+        |> Computer.add_val(water_val, "flour")
+        |> Computer.add_val(salt_val, "flour")
+        |> Computer.add_val(calories_val, ["flour", "servings"])
 
       assert computer.values["flour"] == 500
       assert computer.values["water"] == 325
@@ -174,8 +174,8 @@ defmodule ComputerTest do
         lifespan / daily
       end
 
-      days_output =
-        Output.new(
+      days_val =
+        Val.new(
           "days_until_replacement",
           "Days until replacement",
           :number,
@@ -190,15 +190,15 @@ defmodule ComputerTest do
         daily * 30 / lifespan * cost
       end
 
-      monthly_cost_output =
-        Output.new("monthly_cost", "Monthly tire cost ($)", :number, monthly_cost_fun)
+      monthly_cost_val =
+        Val.new("monthly_cost", "Monthly tire cost ($)", :number, monthly_cost_fun)
 
       wear_percentage_fun = fn %{"daily_distance" => daily, "tire_lifespan" => lifespan} ->
         daily / lifespan * 100
       end
 
-      wear_output =
-        Output.new(
+      wear_val =
+        Val.new(
           "wear_percentage",
           "Daily wear percentage",
           :number,
@@ -210,13 +210,13 @@ defmodule ComputerTest do
         |> Computer.add_input(daily_distance_input)
         |> Computer.add_input(tire_lifespan_input)
         |> Computer.add_input(tire_cost_input)
-        |> Computer.add_output(days_output, ["daily_distance", "tire_lifespan"])
-        |> Computer.add_output(monthly_cost_output, [
+        |> Computer.add_val(days_val, ["daily_distance", "tire_lifespan"])
+        |> Computer.add_val(monthly_cost_val, [
           "daily_distance",
           "tire_cost",
           "tire_lifespan"
         ])
-        |> Computer.add_output(wear_output, ["daily_distance", "tire_lifespan"])
+        |> Computer.add_val(wear_val, ["daily_distance", "tire_lifespan"])
 
       assert computer.values["days_until_replacement"] == 150
       assert computer.values["monthly_cost"] == 10
@@ -243,28 +243,28 @@ defmodule ComputerTest do
         power * count * hours / 1000
       end
 
-      daily_energy_output =
-        Output.new("daily_energy", "Daily energy (kWh)", :number, daily_energy_fun)
+      daily_energy_val =
+        Val.new("daily_energy", "Daily energy (kWh)", :number, daily_energy_fun)
 
       annual_energy_fun = fn %{"daily_energy" => daily} ->
         daily * 365
       end
 
-      annual_energy_output =
-        Output.new("annual_energy", "Annual energy (kWh)", :number, annual_energy_fun)
+      annual_energy_val =
+        Val.new("annual_energy", "Annual energy (kWh)", :number, annual_energy_fun)
 
       annual_savings_fun = fn %{"annual_energy" => annual, "electricity_cost" => cost} ->
         annual * cost
       end
 
-      annual_savings_output =
-        Output.new("annual_savings", "Annual savings ($)", :number, annual_savings_fun)
+      annual_savings_val =
+        Val.new("annual_savings", "Annual savings ($)", :number, annual_savings_fun)
 
       roi_years_fun = fn %{"system_cost" => cost, "annual_savings" => savings} ->
         cost / savings
       end
 
-      roi_output = Output.new("roi_years", "ROI (years)", :number, roi_years_fun)
+      roi_val = Val.new("roi_years", "ROI (years)", :number, roi_years_fun)
 
       computer =
         Computer.new("solar_calculator")
@@ -273,10 +273,10 @@ defmodule ComputerTest do
         |> Computer.add_input(sun_hours_input)
         |> Computer.add_input(electricity_cost_input)
         |> Computer.add_input(system_cost_input)
-        |> Computer.add_output(daily_energy_output, ["panel_power", "panel_count", "sun_hours"])
-        |> Computer.add_output(annual_energy_output, "daily_energy")
-        |> Computer.add_output(annual_savings_output, ["annual_energy", "electricity_cost"])
-        |> Computer.add_output(roi_output, ["system_cost", "annual_savings"])
+        |> Computer.add_val(daily_energy_val, ["panel_power", "panel_count", "sun_hours"])
+        |> Computer.add_val(annual_energy_val, "daily_energy")
+        |> Computer.add_val(annual_savings_val, ["annual_energy", "electricity_cost"])
+        |> Computer.add_val(roi_val, ["system_cost", "annual_savings"])
 
       assert computer.values["daily_energy"] == 15
       assert computer.values["annual_energy"] == 5475
@@ -303,35 +303,35 @@ defmodule ComputerTest do
           (:math.pow(1 + monthly_rate, num_payments) - 1)
       end
 
-      monthly_payment_output =
-        Output.new("monthly_payment", "Monthly payment ($)", :number, monthly_payment_fun)
+      monthly_payment_val =
+        Val.new("monthly_payment", "Monthly payment ($)", :number, monthly_payment_fun)
 
       total_payments_fun = fn %{"monthly_payment" => payment, "loan_term" => years} ->
         payment * years * 12
       end
 
-      total_payments_output =
-        Output.new("total_payments", "Total payments ($)", :number, total_payments_fun)
+      total_payments_val =
+        Val.new("total_payments", "Total payments ($)", :number, total_payments_fun)
 
       total_interest_fun = fn %{"total_payments" => total, "loan_amount" => amount} ->
         total - amount
       end
 
-      total_interest_output =
-        Output.new("total_interest", "Total interest ($)", :number, total_interest_fun)
+      total_interest_val =
+        Val.new("total_interest", "Total interest ($)", :number, total_interest_fun)
 
       computer =
         Computer.new("mortgage_calculator")
         |> Computer.add_input(loan_amount_input)
         |> Computer.add_input(interest_rate_input)
         |> Computer.add_input(loan_term_input)
-        |> Computer.add_output(monthly_payment_output, [
+        |> Computer.add_val(monthly_payment_val, [
           "loan_amount",
           "interest_rate",
           "loan_term"
         ])
-        |> Computer.add_output(total_payments_output, ["monthly_payment", "loan_term"])
-        |> Computer.add_output(total_interest_output, ["total_payments", "loan_amount"])
+        |> Computer.add_val(total_payments_val, ["monthly_payment", "loan_term"])
+        |> Computer.add_val(total_interest_val, ["total_payments", "loan_amount"])
 
       assert Float.round(computer.values["monthly_payment"], 2) == 1520.06
       assert Float.round(computer.values["total_payments"], 2) == 547_220.13

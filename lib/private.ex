@@ -1,13 +1,13 @@
 defmodule Computer.Private do
-  defstruct ~w(inputs outputs funs dependencies names depended_ons depended_bys)a
+  defstruct ~w(inputs vals funs dependencies names depended_ons depended_bys)a
 
   @doc """
-  Creates a new private state with empty inputs, outputs, dependencies and names.
+  Creates a new private state with empty inputs, vals, dependencies and names.
   """
   def new() do
     %__MODULE__{
       inputs: %{},
-      outputs: %{},
+      vals: %{},
       funs: %{},
       dependencies: [],
       names: %{},
@@ -38,7 +38,7 @@ defmodule Computer.Private do
   @doc """
   Retrieves all component values from the private state.
 
-  Takes a private state and extracts all input and output values into a single map
+  Takes a private state and extracts all input and val values into a single map
   where keys are component names and values are their current values.
 
   Returns a map of all component names to their current values.
@@ -48,7 +48,7 @@ defmodule Computer.Private do
       v =
         case type do
           :input -> private.inputs[name]
-          :output -> private.outputs[name]
+          :val -> private.vals[name]
         end
 
       {name, v}
@@ -57,14 +57,14 @@ defmodule Computer.Private do
   end
 
   @doc """
-  Registers an output in the private state.
+  Registers an val in the private state.
   """
-  def register_output(private, output) do
+  def register_val(private, val) do
     %__MODULE__{
       private
-      | outputs: Map.put(private.outputs, output.name, nil),
-        funs: Map.put(private.funs, output.name, output.fun),
-        names: Map.put(private.names, output.name, :output)
+      | vals: Map.put(private.vals, val.name, nil),
+        funs: Map.put(private.funs, val.name, val.fun),
+        names: Map.put(private.names, val.name, :val)
     }
   end
 
@@ -122,11 +122,11 @@ defmodule Computer.Private do
     with_updated_layer =
       Enum.reduce(dependents, private, fn dep, out ->
         deps = out.depended_ons[dep]
-        args = Map.merge(Map.take(out.inputs, deps), Map.take(out.outputs, deps))
+        args = Map.merge(Map.take(out.inputs, deps), Map.take(out.vals, deps))
 
         %{
           out
-          | outputs: Map.put(out.outputs, dep, out.funs[dep].(args))
+          | vals: Map.put(out.vals, dep, out.funs[dep].(args))
         }
       end)
 
@@ -136,11 +136,11 @@ defmodule Computer.Private do
   end
 
   @doc """
-  Refreshes all output values in the system.
+  Refreshes all val values in the system.
 
-  This function recomputes the values of all outputs based on the current input values.
+  This function recomputes the values of all vals based on the current input values.
 
-  Returns the updated private state with all outputs recalculated.
+  Returns the updated private state with all vals recalculated.
   """
   def refresh(private) do
     inputs = Map.keys(private.inputs)
