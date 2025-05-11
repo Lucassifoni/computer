@@ -50,13 +50,15 @@ defmodule Computer.Dsl do
       input_type = Keyword.get(unquote(opts), :type)
       input_description = Keyword.get(unquote(opts), :description)
       input_initial = Keyword.get(unquote(opts), :initial)
+      input_options = Keyword.get(unquote(opts), :options)
 
       input =
         Computer.Input.new(
           unquote(name),
           input_description,
           input_type,
-          input_initial
+          input_initial,
+          input_options
         )
 
       var!(current_computer) = Computer.add_input(var!(current_computer), input)
