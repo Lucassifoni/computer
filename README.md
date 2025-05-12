@@ -61,6 +61,31 @@ pace_cpu = Computer.Samples.Pace.sample()
 assert values["pace"] == 4.0
 ```
 
+### 5 : optionnally, graph your computer
+
+```elixir
+> cpu = Computer.Samples.MpccCalc.sample
+> Computer.Graph.graph(cpu)
+%{dot: <graphviz graph>, mermaid: <mermaidjs graph>}
+```
+
+```mermaid
+graph TD;
+    correction((correction));
+    d[d];
+    f[f];
+    ratio((ratio));
+    target((target));
+    undercorrection((undercorrection));
+    d --> correction;
+    ratio --> correction;
+    f --> ratio;
+    d --> ratio;
+    undercorrection --> target;
+    correction --> target;
+    ratio --> undercorrection;
+```
+
 ## Samples
 
 ```elixir
