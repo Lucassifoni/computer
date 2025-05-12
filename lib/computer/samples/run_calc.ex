@@ -18,22 +18,19 @@ defmodule Computer.Samples.RunCalc do
       val("pace",
         description: "Your running pace in minutes per km",
         type: :number,
-        fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
-        depends_on: ["time", "distance"]
+        fun: fn %{"time" => time, "distance" => distance} -> time / distance end
       )
 
       val("speed",
         description: "Your running speed in km/h",
         type: :number,
-        fun: fn %{"time" => time, "distance" => distance} -> distance / (time / 60) end,
-        depends_on: ["time", "distance"]
+        fun: fn %{"time" => time, "distance" => distance} -> distance / (time / 60) end
       )
 
       val("calories",
         description: "Estimated calories burned",
         type: :number,
-        fun: fn %{"time" => time, "speed" => speed} -> time / 60 * (450 * speed / 12) end,
-        depends_on: ["time", "speed"]
+        fun: fn %{"time" => time, "speed" => speed} -> time / 60 * (450 * speed / 12) end
       )
     end
   end

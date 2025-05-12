@@ -19,7 +19,6 @@ defmodule Computer.Dsl do
           description: "Your running pace in minutes per km",
           type: :number,
           fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
-          depends_on: ["time", "distance"]
       end
   """
   defmacro computer(name, do: block) do
@@ -73,15 +72,34 @@ defmodule Computer.Dsl do
       val "pace",
         description: "Your running pace in minutes per km",
         type: :number,
-        fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
-        depends_on: ["time", "distance"]
+        fun: fn %{"time" => time, "distance" => distance} -> time / distance end
   """
   defmacro val(name, opts \\ []) do
+    fun_ast = Keyword.get(opts, :fun)
+
+    val_deps =
+      case fun_ast do
+        {:fn, _,
+         [
+           {:->, _,
+            [
+              [
+                {:%{}, _, matches}
+              ],
+              _
+            ]}
+         ]} ->
+          matches |> Enum.map(&elem(&1, 0))
+
+        _ ->
+          :error
+      end
+
     quote do
       val_type = Keyword.get(unquote(opts), :type)
       val_description = Keyword.get(unquote(opts), :description)
       val_fun = Keyword.get(unquote(opts), :fun)
-      val_dependencies = Keyword.get(unquote(opts), :depends_on, [])
+      val_dependencies = unquote(val_deps)
 
       val =
         Computer.Val.new(

@@ -18,8 +18,7 @@ defmodule Computer.Samples.Pace do
       val("pace",
         description: "Your running pace in minutes per km",
         type: :number,
-        fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
-        depends_on: ["time", "distance"]
+        fun: fn %{"time" => time, "distance" => distance} -> time / distance end
       )
     end
   end

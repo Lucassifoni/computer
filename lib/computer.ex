@@ -31,7 +31,7 @@ defmodule Computer do
   end
 
   @doc """
-  Adds an val to the computer with dependencies.
+  Adds a val to the computer with dependencies.
   """
   def add_val(computer, val, depends_on) do
     dependency_list =

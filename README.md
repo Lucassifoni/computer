@@ -3,6 +3,16 @@
 Declarative dependency-free reactive computations. Not bound to liveview or any specific framework.<br/>
 Goal is a spreadsheet-like experience and view helpers / event ingestion helpers to quickly spin up UIs for internal calculator tools.
 
+The dependencies of each val are extracted at compile-time from the pattern match in their function head. This means that the below snippet auto-fills the value dependencies as "time" and "distance". The DSL raises if there is no pattern match on a map in the function head.
+
+```elixir
+val("pace",
+  description: "Your running pace in minutes per km",
+  type: :number,
+  fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
+)
+```
+
 ## Usage
 
 ### 1 : define a computer
@@ -26,7 +36,6 @@ pace_cpu = computer "Pace computer" do
     description: "Your running pace in minutes per km",
     type: :number,
     fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
-    depends_on: ["time", "distance"]
   )
 end
 ```
@@ -66,15 +75,13 @@ defmodule Computer.Samples.MpccCalc do
       val("ratio",
         description: "Focal ratio",
         type: :number,
-        fun: fn %{"f" => f, "d" => d} -> f / d end,
-        depends_on: ["f", "d"]
+        fun: fn %{"f" => f, "d" => d} -> f / d end
       )
 
       val("correction",
         description: "Parabola correction (waves @550nm)",
         type: :number,
-        fun: fn %{"d" => d, "ratio" => ratio} -> d / (1.1264 * (ratio * ratio * ratio)) end,
-        depends_on: ["d", "ratio"]
+        fun: fn %{"d" => d, "ratio" => ratio} -> d / (1.1264 * (ratio * ratio * ratio)) end
       )
 
       val("undercorrection",
@@ -83,15 +90,13 @@ defmodule Computer.Samples.MpccCalc do
         fun: fn %{"ratio" => ratio} ->
           c = 4 / ratio
           c * c * c * c * 0.81
-        end,
-        depends_on: ["ratio"]
+        end
       )
 
       val("target",
         description: "Target conic",
         type: :number,
-        fun: fn %{"undercorrection" => under, "correction" => corr} -> -1 - under / corr end,
-        depends_on: ["undercorrection", "correction"]
+        fun: fn %{"undercorrection" => under, "correction" => corr} -> -1 - under / corr end
       )
     end
   end

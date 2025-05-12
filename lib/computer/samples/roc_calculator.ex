@@ -37,8 +37,7 @@ defmodule Computer.Samples.RocCalculator do
         fun: fn %{"r" => r, "s" => s, "b" => b, "curve" => curve} ->
           b_value = if curve == "concave", do: b, else: -b
           (r * r + s * s) / (2 * s) + b_value / 2
-        end,
-        depends_on: ["r", "s", "b", "curve"]
+        end
       )
     end
   end
