@@ -116,7 +116,7 @@ defmodule Computer.Private do
 
   Returns updated private state with all dependent values recomputed.
   """
-  def compute_dependents(private, name) do
+  def compute_dependents(private, name, values) do
     dependents = private.depended_bys[name] || []
 
     with_updated_layer =
@@ -124,29 +124,30 @@ defmodule Computer.Private do
         deps = out.depended_ons[dep]
         args = Map.merge(Map.take(out.inputs, deps), Map.take(out.vals, deps))
 
+        fun = out.funs[dep]
+
+        res =
+          case {values, :erlang.fun_info(fun)[:arity]} do
+            {_, 1} -> fun.(args)
+            {v, 2} -> fun.(args, v)
+          end
+
         %{
           out
-          | vals: Map.put(out.vals, dep, out.funs[dep].(args))
+          | vals: Map.put(out.vals, dep, res)
         }
       end)
 
     Enum.reduce(dependents, with_updated_layer, fn dep, out ->
-      compute_dependents(out, dep)
+      compute_dependents(out, dep, values)
     end)
   end
 
-  @doc """
-  Refreshes all val values in the system.
-
-  This function recomputes the values of all vals based on the current input values.
-
-  Returns the updated private state with all vals recalculated.
-  """
-  def refresh(private) do
-    inputs = Map.keys(private.inputs)
-
-    Enum.reduce(inputs, private, fn input, acc ->
-      compute_dependents(acc, input)
+  def refresh(private, values) do
+    private.inputs
+    |> Map.keys()
+    |> Enum.reduce(private, fn input, acc ->
+      compute_dependents(acc, input, values)
     end)
   end
 end

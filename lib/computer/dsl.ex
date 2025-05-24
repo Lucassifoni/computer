@@ -35,6 +35,41 @@ defmodule Computer.Dsl do
   end
 
   @doc """
+  Creates a new computer with a DSL.
+
+  ## Examples
+
+      stateful_computer "Pace computer" do
+        input "time",
+          type: :number,
+          description: "Your running time in minutes",
+          initial: 30
+
+        input "distance",
+          type: :number,
+          description: "Your running distance in km",
+          initial: 10
+
+        val "pace",
+          description: "Your running pace in minutes per km",
+          type: :number,
+          fun: fn %{"time" => time, "distance" => distance} -> time / distance end,
+      end
+  """
+  defmacro stateful_computer(name, do: block) do
+    quote do
+      require Computer.Dsl
+
+      computer = Computer.new_stateful(unquote(name))
+      var!(current_computer) = computer
+
+      unquote(block)
+
+      var!(current_computer)
+    end
+  end
+
+  @doc """
   Defines an input for a computer.
 
   ## Examples
@@ -85,6 +120,19 @@ defmodule Computer.Dsl do
             [
               [
                 {:%{}, _, matches}
+              ],
+              _
+            ]}
+         ]} ->
+          matches |> Enum.map(&elem(&1, 0))
+
+        {:fn, _,
+         [
+           {:->, _,
+            [
+              [
+                {:%{}, _, matches},
+                _
               ],
               _
             ]}

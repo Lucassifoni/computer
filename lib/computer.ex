@@ -9,7 +9,7 @@ defmodule Computer do
   alias Computer.Private
   alias Computer.Instance
 
-  defstruct ~w(name inputs vals private values log pending)a
+  defstruct ~w(name inputs vals private values log pending stateful)a
 
   @doc """
   Creates a new computer with the given name.
@@ -28,7 +28,21 @@ defmodule Computer do
       private: Computer.Private.new(),
       values: %{},
       pending: nil,
-      log: []
+      log: [],
+      stateful: false
+    }
+  end
+
+  def new_stateful(name) do
+    %__MODULE__{
+      name: name,
+      inputs: [],
+      vals: [],
+      private: Computer.Private.new(),
+      values: %{},
+      pending: nil,
+      log: [],
+      stateful: true
     }
   end
 
@@ -83,6 +97,10 @@ defmodule Computer do
     |> Map.put(:private, Private.register_input(computer.private, input))
   end
 
+  defp prev(computer) do
+    if computer.stateful, do: computer.values, else: nil
+  end
+
   defp do_add_val(computer, val, depends_on) do
     dependency_list =
       case depends_on do
@@ -98,7 +116,7 @@ defmodule Computer do
       Enum.reduce(dependency_list, updated_private, fn d, up ->
         up |> Private.register_dependency(val.name, d)
       end)
-      |> Private.refresh()
+      |> Private.refresh(prev(computer))
 
     computer
     |> Map.put(:vals, [val | computer.vals])
@@ -110,7 +128,7 @@ defmodule Computer do
     updated_private =
       computer.private
       |> Private.update_input(input_name, value)
-      |> Private.compute_dependents(input_name)
+      |> Private.compute_dependents(input_name, prev(computer))
 
     %{
       computer
